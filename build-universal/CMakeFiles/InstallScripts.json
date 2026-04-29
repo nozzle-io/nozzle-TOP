@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/2bit/prog/cpp/nozzle-TOP/build-universal/cmake_install.cmake",
+		"/Users/2bit/prog/cpp/nozzle-TOP/build-universal/libs/nozzle/cmake_install.cmake",
+		"/Users/2bit/prog/cpp/nozzle-TOP/build-universal/libs/nozzle/examples/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

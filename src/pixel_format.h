@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CPlusPlus_Common.h>
-#include <bbb/nozzle/nozzle_c.h>
+#include <nozzle/nozzle_c.h>
 #include <cstdint>
 
 namespace nozzle_top {

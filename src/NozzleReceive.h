@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TOP_CPlusPlusBase.h"
-#include <bbb/nozzle/nozzle_c.h>
+#include <nozzle/nozzle_c.h>
 #include <string>
 
 using namespace TD;
