@@ -1,6 +1,6 @@
 # nozzle-TOP
 
-TouchDesigner Custom TOP plugins for [nozzle](https://github.com/2bbb/nozzle) — local inter-process GPU texture sharing.
+TouchDesigner Custom TOP plugins for [nozzle](https://github.com/nozzle-io/nozzle) — local inter-process GPU texture sharing.
 
 ## Plugins
 
@@ -34,7 +34,7 @@ Both plugins share the same parameters:
 ### macOS
 
 ```bash
-git clone --recurse-submodules https://github.com/2bbb/nozzle-TOP.git
+git clone --recurse-submodules https://github.com/nozzle-io/nozzle-TOP.git
 cd nozzle-TOP
 cmake -B build
 cmake --build build
@@ -45,7 +45,7 @@ Output: `plugin/NozzleSend.plugin` and `plugin/NozzleReceive.plugin` (universal 
 ### Windows
 
 ```bash
-git clone --recurse-submodules https://github.com/2bbb/nozzle-TOP.git
+git clone --recurse-submodules https://github.com/nozzle-io/nozzle-TOP.git
 cd nozzle-TOP
 cmake -B build
 cmake --build build --config Release
