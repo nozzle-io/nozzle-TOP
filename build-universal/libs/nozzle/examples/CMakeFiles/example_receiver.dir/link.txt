@@ -1,1 +1,0 @@
-/usr/bin/c++  -std=c++17 -stdlib=libc++ -arch arm64 -arch x86_64 -mmacosx-version-min=12.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/example_receiver.dir/example_receiver.cpp.o -o example_receiver  -Wl,-force_load ../libnozzle.a -framework Metal -framework IOSurface -framework Foundation -lobjc -framework OpenGL
