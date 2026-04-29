@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Verify plugins
+        run: |
+          for plugin in NozzleSend.plugin NozzleReceive.plugin; do
+            if [ ! -d "plugin/$plugin" ]; then
+              echo "Missing: plugin/$plugin"
+              exit 1
+            fi
+            echo "OK: $plugin"
+          done
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Verify plugins
+        shell: bash
+        run: |
+          for dll in NozzleSend.dll NozzleReceive.dll; do
+            if [ ! -f "plugin/$dll" ]; then
+              echo "Missing: plugin/$dll"
+              exit 1
+            fi
+            echo "OK: $dll"
+          done
