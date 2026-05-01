@@ -1,5 +1,8 @@
 # nozzle-TOP
 
+> This codebase is currently in its AI-slob prototyping phase: the code runs on momentum, vibes, and plausible intent.
+> Proper debugging will be introduced once demand graduates from hypothetical to measurable.
+
 TouchDesigner Custom TOP plugins for [nozzle](https://github.com/nozzle-io/nozzle) — local inter-process GPU texture sharing.
 
 ## Plugins
@@ -80,3 +83,7 @@ Copy the `.plugin` (macOS) or `.dll` (Windows) files to your TouchDesigner Custo
 ## License
 
 MIT
+
+Third-party dependencies:
+
+- [nozzle](https://github.com/nozzle-io/nozzle) — MIT
