@@ -1,10 +1,12 @@
-name: CI
+name: Build & Package
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  release:
+    types: [published]
 
 jobs:
   build-macos:
@@ -14,11 +16,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Configure
-        run: cmake -B build
-
-      - name: Build
-        run: cmake --build build
+      - name: Configure and Build
+        run: cmake -B build && cmake --build build --config Release
 
       - name: Verify plugins
         run: |
@@ -27,8 +26,20 @@ jobs:
               echo "Missing: plugin/$plugin"
               exit 1
             fi
+            binary="plugin/$plugin/Contents/MacOS/$(basename "$plugin" .plugin)"
+            if [ -f "$binary" ]; then
+              archs=$(lipo -info "$binary" 2>&1)
+              echo "$archs"
+              echo "$archs" | grep -q "x86_64 arm64" || { echo "Not universal: $plugin"; exit 1; }
+            fi
             echo "OK: $plugin"
           done
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-macos
+          path: plugin/
 
   build-windows:
     runs-on: windows-2022
@@ -37,11 +48,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Configure
-        run: cmake -B build
-
-      - name: Build
-        run: cmake --build build --config Release
+      - name: Configure and Build
+        run: cmake -B build && cmake --build build --config Release
 
       - name: Verify plugins
         shell: bash
@@ -53,3 +61,61 @@ jobs:
             fi
             echo "OK: $dll"
           done
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-windows
+          path: plugin/
+
+  package:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-macos
+          path: dist/${{ github.event.repository.name }}/plugin-macos/
+
+      - name: Download Windows plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-windows
+          path: dist/${{ github.event.repository.name }}/plugin-windows/
+
+      - name: Assemble package
+        run: |
+          NAME="${{ github.event.repository.name }}"
+          cp LICENSE "dist/$NAME/" 2>/dev/null || true
+          cp README.md "dist/$NAME/" 2>/dev/null || true
+
+      - name: Create archive
+        run: |
+          cd dist
+          zip -r "${{ github.event.repository.name }}.zip" "${{ github.event.repository.name }}/"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-latest
+          path: dist/*.zip
+
+      - name: Upload to Release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: latest
+          prerelease: false
+          files: dist/*.zip
+
+      - name: Upload to Versioned Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
