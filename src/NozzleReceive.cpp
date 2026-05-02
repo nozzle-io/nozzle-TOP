@@ -82,13 +82,6 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     NozzleErrorCode err = nozzle_receiver_acquire_frame(myReceiver, &acquire_desc, &frame);
 
     if (err != NOZZLE_OK || !frame) {
-        static int skip_log = 0;
-        if (++skip_log <= 5) {
-            NozzleConnectedSenderInfo info{};
-            nozzle_receiver_get_connected_info(myReceiver, &info);
-            FILE *f = fopen("/tmp/nozzle_td_debug.log", "a");
-            if (f) { fprintf(f, "[nozzle] acquire err=%d w=%u h=%u backend=%d\n", static_cast<int>(err), info.width, info.height, info.backend); fclose(f); }
-        }
         return;
     }
 
@@ -186,11 +179,6 @@ NozzleReceiveTOP::update_receiver(const char *name)
 
     NozzleErrorCode err = nozzle_receiver_create(&desc, &myReceiver);
     if (err != NOZZLE_OK) {
-        FILE *f = fopen("/tmp/nozzle_td_debug.log", "a");
-        if (f) { fprintf(f, "[nozzle] receiver create failed for '%s': error %d\n", mySenderName.c_str(), static_cast<int>(err)); fclose(f); }
         myReceiver = nullptr;
-    } else {
-        FILE *f = fopen("/tmp/nozzle_td_debug.log", "a");
-        if (f) { fprintf(f, "[nozzle] receiver connected to '%s'\n", mySenderName.c_str()); fclose(f); }
     }
 }
