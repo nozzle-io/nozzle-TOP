@@ -82,6 +82,11 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     NozzleErrorCode err = nozzle_receiver_acquire_frame(myReceiver, &acquire_desc, &frame);
 
     if (err != NOZZLE_OK || !frame) {
+        static int skip_log = 0;
+        if (++skip_log <= 5) {
+            FILE *f = fopen("/tmp/nozzle_td_debug.log", "a");
+            if (f) { fprintf(f, "[nozzle] acquire_frame err=%d frame=%p\n", static_cast<int>(err), (void*)frame); fclose(f); }
+        }
         return;
     }
 
