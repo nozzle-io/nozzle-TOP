@@ -179,6 +179,9 @@ NozzleReceiveTOP::update_receiver(const char *name)
 
     NozzleErrorCode err = nozzle_receiver_create(&desc, &myReceiver);
     if (err != NOZZLE_OK) {
+        std::fprintf(stderr, "[nozzle] receiver create failed for '%s': error %d\n", mySenderName.c_str(), static_cast<int>(err));
         myReceiver = nullptr;
+    } else {
+        std::fprintf(stderr, "[nozzle] receiver connected to '%s'\n", mySenderName.c_str());
     }
 }
