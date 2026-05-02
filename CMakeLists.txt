@@ -22,10 +22,16 @@ endif()
 # --- nozzle (static library via submodule) ---
 set(NOZZLE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 option(NOZZLE_TOP_DEBUG "Enable debug logging for nozzle-TOP" OFF)
+option(NOZZLE_DEBUG "Enable debug logging in nozzle library" OFF)
 if(NOZZLE_TOP_DEBUG)
     add_compile_definitions(NOZZLE_TOP_DEBUG=1)
 endif()
+if(NOZZLE_DEBUG)
+    add_compile_definitions(NOZZLE_DEBUG=1)
+endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/nozzle)
+
+set(NOZZLE_DEBUG OFF CACHE BOOL "" FORCE)
 
 # --- TD SDK headers ---
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/td_sdk)
