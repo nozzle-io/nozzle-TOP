@@ -82,6 +82,12 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     NozzleErrorCode err = nozzle_receiver_acquire_frame(myReceiver, &acquire_desc, &frame);
 
     if (err != NOZZLE_OK || !frame) {
+#if NOZZLE_TOP_DEBUG
+        NozzleConnectedSenderInfo dbg_info{};
+        nozzle_receiver_get_connected_info(myReceiver, &dbg_info);
+        fprintf(stderr, "[nozzle] acquire err=%d w=%u h=%u backend=%d\n",
+                static_cast<int>(err), dbg_info.width, dbg_info.height, dbg_info.backend);
+#endif
         return;
     }
 
