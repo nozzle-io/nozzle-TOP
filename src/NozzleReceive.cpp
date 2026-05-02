@@ -116,17 +116,14 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     OP_SmartRef<TOP_Buffer> out_buf = myContext->createOutputBuffer(byte_size, TOP_BufferFlags::None, nullptr);
 
     if (out_buf) {
-        if (pixels.row_bytes == src_row_bytes) {
-            std::memcpy(out_buf->data, pixels.data, byte_size);
-        } else {
-            uint8_t *dst = static_cast<uint8_t *>(out_buf->data);
-            const uint8_t *src = static_cast<const uint8_t *>(pixels.data);
-            uint32_t copy_bytes = (src_row_bytes < pixels.row_bytes) ? src_row_bytes : pixels.row_bytes;
-            for (uint32_t y = 0; y < pixels.height; ++y) {
-                std::memcpy(dst, src, copy_bytes);
-                dst += src_row_bytes;
-                src += pixels.row_bytes;
-            }
+        uint8_t *dst = static_cast<uint8_t *>(out_buf->data);
+        const uint8_t *src = static_cast<const uint8_t *>(pixels.data);
+        uint32_t copy_bytes = (src_row_bytes < pixels.row_bytes) ? src_row_bytes : pixels.row_bytes;
+
+        for (uint32_t y = 0; y < pixels.height; ++y) {
+            std::memcpy(dst + y * src_row_bytes,
+                        src + (pixels.height - 1 - y) * pixels.row_bytes,
+                        copy_bytes);
         }
 
         TOP_UploadInfo info;

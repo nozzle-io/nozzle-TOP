@@ -126,14 +126,20 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
                 uint32_t copy_bytes = (src_row_bytes < dst_row_bytes) ? src_row_bytes : dst_row_bytes;
 
                 if (src_row_bytes == dst_row_bytes) {
-                    std::memcpy(pixels.data, src_data, byte_size);
+                    const uint8_t *src = static_cast<const uint8_t *>(src_data);
+                    uint8_t *dst = static_cast<uint8_t *>(pixels.data);
+                    for (int32_t y = 0; y < height; ++y) {
+                        std::memcpy(dst + y * dst_row_bytes,
+                                    src + (height - 1 - y) * src_row_bytes,
+                                    src_row_bytes);
+                    }
                 } else {
                     uint8_t *dst = static_cast<uint8_t *>(pixels.data);
                     const uint8_t *src = static_cast<const uint8_t *>(src_data);
                     for (int32_t y = 0; y < height; ++y) {
-                        std::memcpy(dst, src, copy_bytes);
-                        dst += dst_row_bytes;
-                        src += src_row_bytes;
+                        std::memcpy(dst + y * dst_row_bytes,
+                                    src + (height - 1 - y) * src_row_bytes,
+                                    copy_bytes);
                     }
                 }
 
