@@ -84,8 +84,10 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     if (err != NOZZLE_OK || !frame) {
         static int skip_log = 0;
         if (++skip_log <= 5) {
+            NozzleConnectedSenderInfo info{};
+            nozzle_receiver_get_connected_info(myReceiver, &info);
             FILE *f = fopen("/tmp/nozzle_td_debug.log", "a");
-            if (f) { fprintf(f, "[nozzle] acquire_frame err=%d frame=%p\n", static_cast<int>(err), (void*)frame); fclose(f); }
+            if (f) { fprintf(f, "[nozzle] acquire err=%d w=%u h=%u backend=%d\n", static_cast<int>(err), info.width, info.height, info.backend); fclose(f); }
         }
         return;
     }
