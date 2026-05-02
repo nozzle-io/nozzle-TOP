@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <cstdio>
 
 extern "C"
 {
@@ -106,6 +107,16 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
             mySender, static_cast<uint32_t>(width), static_cast<uint32_t>(height),
             nz_fmt, &frame);
 
+#if NOZZLE_TOP_DEBUG
+        {
+            static int count = 0;
+            if (++count <= 10) {
+                FILE *f = fopen("/tmp/nozzle_send_td_debug.log", "a");
+                if (f) { fprintf(f, "[%d] acquire: err=%d frame=%p w=%d h=%d fmt=%d\n", count, (int)err, frame, width, height, (int)nz_fmt); fclose(f); }
+            }
+        }
+#endif
+
         if (err == NOZZLE_OK && frame) {
             NozzleMappedPixels pixels;
             err = nozzle_frame_lock_writable_pixels(frame, &pixels);
@@ -128,7 +139,17 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 
                 nozzle_frame_unlock_writable_pixels(frame);
             }
-            nozzle_sender_commit_frame(mySender, frame);
+            NozzleErrorCode commit_err = nozzle_sender_commit_frame(mySender, frame);
+
+#if NOZZLE_TOP_DEBUG
+            {
+                static int commit_count = 0;
+                if (++commit_count <= 10) {
+                    FILE *f = fopen("/tmp/nozzle_send_td_debug.log", "a");
+                    if (f) { fprintf(f, "[%d] commit: err=%d\n", commit_count, (int)commit_err); fclose(f); }
+                }
+            }
+#endif
         }
     }
 
