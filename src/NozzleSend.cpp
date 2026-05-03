@@ -119,28 +119,18 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 
         if (err == NOZZLE_OK && frame) {
             NozzleMappedPixels pixels;
-            err = nozzle_frame_lock_writable_pixels(frame, &pixels);
+            err = nozzle_frame_lock_writable_pixels_with_origin(
+                frame, NOZZLE_ORIGIN_BOTTOM_LEFT, &pixels);
             if (err == NOZZLE_OK) {
                 uint32_t src_row_bytes = width * nozzle_top::bytes_per_pixel_td(pixel_format);
-                uint32_t dst_row_bytes = pixels.row_bytes;
-                uint32_t copy_bytes = (src_row_bytes < dst_row_bytes) ? src_row_bytes : dst_row_bytes;
+                uint32_t copy_bytes = src_row_bytes;
+                auto *dst = static_cast<uint8_t *>(pixels.data);
+                auto *src = static_cast<const uint8_t *>(src_data);
 
-                if (src_row_bytes == dst_row_bytes) {
-                    const uint8_t *src = static_cast<const uint8_t *>(src_data);
-                    uint8_t *dst = static_cast<uint8_t *>(pixels.data);
-                    for (int32_t y = 0; y < height; ++y) {
-                        std::memcpy(dst + y * dst_row_bytes,
-                                    src + (height - 1 - y) * src_row_bytes,
-                                    src_row_bytes);
-                    }
-                } else {
-                    uint8_t *dst = static_cast<uint8_t *>(pixels.data);
-                    const uint8_t *src = static_cast<const uint8_t *>(src_data);
-                    for (int32_t y = 0; y < height; ++y) {
-                        std::memcpy(dst + y * dst_row_bytes,
-                                    src + (height - 1 - y) * src_row_bytes,
-                                    copy_bytes);
-                    }
+                for (int32_t y = 0; y < height; ++y) {
+                    std::memcpy(dst + static_cast<int64_t>(y) * pixels.row_stride_bytes,
+                                src + y * src_row_bytes,
+                                copy_bytes);
                 }
 
                 nozzle_frame_unlock_writable_pixels(frame);

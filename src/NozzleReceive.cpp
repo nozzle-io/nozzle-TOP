@@ -100,7 +100,7 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
     }
 
     NozzleMappedPixels pixels;
-    err = nozzle_frame_lock_pixels(frame, &pixels);
+    err = nozzle_frame_lock_pixels_with_origin(frame, NOZZLE_ORIGIN_BOTTOM_LEFT, &pixels);
 
     if (err != NOZZLE_OK) {
         nozzle_frame_release(frame);
@@ -109,20 +109,19 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 
     TD::OP_PixelFormat td_fmt = nozzle_top::nozzle_to_td_format(pixels.format);
     uint32_t bpp = nozzle_top::bytes_per_pixel_td(td_fmt);
-    uint32_t src_row_bytes = pixels.width * bpp;
-    uint64_t byte_size = static_cast<uint64_t>(src_row_bytes) * pixels.height;
+    uint32_t dst_row_bytes = pixels.width * bpp;
+    uint32_t copy_bytes = dst_row_bytes;
+    uint64_t byte_size = static_cast<uint64_t>(dst_row_bytes) * pixels.height;
 
-    // Create output buffer and copy pixel data
     OP_SmartRef<TOP_Buffer> out_buf = myContext->createOutputBuffer(byte_size, TOP_BufferFlags::None, nullptr);
 
     if (out_buf) {
         uint8_t *dst = static_cast<uint8_t *>(out_buf->data);
-        const uint8_t *src = static_cast<const uint8_t *>(pixels.data);
-        uint32_t copy_bytes = (src_row_bytes < pixels.row_bytes) ? src_row_bytes : pixels.row_bytes;
+        auto *src = static_cast<const uint8_t *>(pixels.data);
 
         for (uint32_t y = 0; y < pixels.height; ++y) {
-            std::memcpy(dst + y * src_row_bytes,
-                        src + (pixels.height - 1 - y) * pixels.row_bytes,
+            std::memcpy(dst + y * dst_row_bytes,
+                        src + static_cast<int64_t>(y) * pixels.row_stride_bytes,
                         copy_bytes);
         }
 
