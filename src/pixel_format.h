@@ -74,4 +74,9 @@ inline uint32_t bytes_per_pixel_td(TD::OP_PixelFormat fmt)
     }
 }
 
+inline bool needs_uint_to_float(NozzleTextureFormat fmt)
+{
+    return fmt == NOZZLE_FORMAT_R32_UINT || fmt == NOZZLE_FORMAT_RGBA32_UINT;
+}
+
 } // namespace nozzle_top

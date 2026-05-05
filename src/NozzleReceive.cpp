@@ -119,10 +119,23 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
         uint8_t *dst = static_cast<uint8_t *>(out_buf->data);
         auto *src = static_cast<const uint8_t *>(pixels.data);
 
-        for (uint32_t y = 0; y < pixels.height; ++y) {
-            std::memcpy(dst + y * dst_row_bytes,
-                        src + static_cast<int64_t>(y) * pixels.row_stride_bytes,
-                        copy_bytes);
+        if (nozzle_top::needs_uint_to_float(pixels.format)) {
+            for (uint32_t y = 0; y < pixels.height; ++y) {
+                const auto *src_row = reinterpret_cast<const uint32_t *>(
+                    src + static_cast<int64_t>(y) * pixels.row_stride_bytes);
+                auto *dst_row = reinterpret_cast<float *>(
+                    dst + y * dst_row_bytes);
+                uint32_t num_elements = copy_bytes / sizeof(float);
+                for (uint32_t i = 0; i < num_elements; ++i) {
+                    dst_row[i] = static_cast<float>(src_row[i]);
+                }
+            }
+        } else {
+            for (uint32_t y = 0; y < pixels.height; ++y) {
+                std::memcpy(dst + y * dst_row_bytes,
+                            src + static_cast<int64_t>(y) * pixels.row_stride_bytes,
+                            copy_bytes);
+            }
         }
 
         TOP_UploadInfo info;
