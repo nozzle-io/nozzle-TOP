@@ -120,16 +120,12 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
         auto *src = static_cast<const uint8_t *>(pixels.data);
 
         if (nozzle_top::needs_uint_to_float(pixels.format)) {
-            for (uint32_t y = 0; y < pixels.height; ++y) {
-                const auto *src_row = reinterpret_cast<const uint32_t *>(
-                    src + static_cast<int64_t>(y) * pixels.row_stride_bytes);
-                auto *dst_row = reinterpret_cast<float *>(
-                    dst + y * dst_row_bytes);
-                uint32_t num_elements = copy_bytes / sizeof(float);
-                for (uint32_t i = 0; i < num_elements; ++i) {
-                    dst_row[i] = static_cast<float>(src_row[i]);
-                }
-            }
+            uint32_t channels = (pixels.format == NOZZLE_FORMAT_RGBA32_UINT) ? 4 : 1;
+            nozzle_convert_uint32_to_float32(
+                pixels.data, dst,
+                pixels.width, pixels.height,
+                pixels.row_stride_bytes, dst_row_bytes,
+                channels);
         } else {
             for (uint32_t y = 0; y < pixels.height; ++y) {
                 std::memcpy(dst + y * dst_row_bytes,
