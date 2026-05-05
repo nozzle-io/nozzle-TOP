@@ -88,6 +88,8 @@ Copy the `.plugin` (macOS) or `.dll` (Windows) files to your TouchDesigner Custo
 | Mono 8/16/16F/32F Fixed/Float | R8/R16/R16F/R32F |
 | RG 8/16/16F/32F Fixed/Float | RG8/RG16/RG16F/RG32F |
 
+TouchDesigner has no pixel format for sRGB or uint textures. Nozzle sRGB/uint formats fall back to BGRA8Fixed.
+
 ## License
 
 MIT
