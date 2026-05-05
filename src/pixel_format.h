@@ -31,20 +31,25 @@ inline TD::OP_PixelFormat nozzle_to_td_format(NozzleTextureFormat fmt)
 {
     using PF = TD::OP_PixelFormat;
     switch (fmt) {
-        case NOZZLE_FORMAT_BGRA8_UNORM:  return PF::BGRA8Fixed;
-        case NOZZLE_FORMAT_RGBA8_UNORM:  return PF::RGBA8Fixed;
-        case NOZZLE_FORMAT_RGBA16_UNORM: return PF::RGBA16Fixed;
-        case NOZZLE_FORMAT_RGBA16_FLOAT: return PF::RGBA16Float;
-        case NOZZLE_FORMAT_RGBA32_FLOAT: return PF::RGBA32Float;
-        case NOZZLE_FORMAT_R8_UNORM:     return PF::Mono8Fixed;
-        case NOZZLE_FORMAT_R16_UNORM:    return PF::Mono16Fixed;
-        case NOZZLE_FORMAT_R16_FLOAT:    return PF::Mono16Float;
-        case NOZZLE_FORMAT_R32_FLOAT:    return PF::Mono32Float;
-        case NOZZLE_FORMAT_RG8_UNORM:    return PF::RG8Fixed;
-        case NOZZLE_FORMAT_RG16_UNORM:   return PF::RG16Fixed;
-        case NOZZLE_FORMAT_RG16_FLOAT:   return PF::RG16Float;
-        case NOZZLE_FORMAT_RG32_FLOAT:   return PF::RG32Float;
-        default:                         return PF::BGRA8Fixed;
+        case NOZZLE_FORMAT_BGRA8_UNORM:   return PF::BGRA8Fixed;
+        case NOZZLE_FORMAT_RGBA8_UNORM:   return PF::RGBA8Fixed;
+        case NOZZLE_FORMAT_RGBA16_UNORM:  return PF::RGBA16Fixed;
+        case NOZZLE_FORMAT_RGBA16_FLOAT:  return PF::RGBA16Float;
+        case NOZZLE_FORMAT_RGBA32_FLOAT:  return PF::RGBA32Float;
+        case NOZZLE_FORMAT_R8_UNORM:      return PF::Mono8Fixed;
+        case NOZZLE_FORMAT_R16_UNORM:     return PF::Mono16Fixed;
+        case NOZZLE_FORMAT_R16_FLOAT:     return PF::Mono16Float;
+        case NOZZLE_FORMAT_R32_FLOAT:     return PF::Mono32Float;
+        case NOZZLE_FORMAT_RG8_UNORM:     return PF::RG8Fixed;
+        case NOZZLE_FORMAT_RG16_UNORM:    return PF::RG16Fixed;
+        case NOZZLE_FORMAT_RG16_FLOAT:    return PF::RG16Float;
+        case NOZZLE_FORMAT_RG32_FLOAT:    return PF::RG32Float;
+        case NOZZLE_FORMAT_RGBA8_SRGB:    return PF::RGBA8Fixed;
+        case NOZZLE_FORMAT_BGRA8_SRGB:    return PF::BGRA8Fixed;
+        case NOZZLE_FORMAT_R32_UINT:      return PF::Mono32Float;
+        case NOZZLE_FORMAT_RGBA32_UINT:   return PF::RGBA32Float;
+        case NOZZLE_FORMAT_DEPTH32_FLOAT: return PF::Mono32Float;
+        default:                          return PF::BGRA8Fixed;
     }
 }
 
