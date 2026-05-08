@@ -199,6 +199,8 @@ NozzleSendTOP::update_sender(const char *name)
     desc.name = mySenderName.c_str();
     desc.application_name = "TouchDesigner";
     desc.ring_buffer_size = 3;
+    desc.fallback_flags_valid = 1;
+    desc.fallback_flags = NOZZLE_FALLBACK_SAFE_DEFAULTS;
 
     NozzleErrorCode err = nozzle_sender_create(&desc, &mySender);
     if (err != NOZZLE_OK) {
