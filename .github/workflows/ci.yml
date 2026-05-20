@@ -79,34 +79,87 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare package metadata
+        id: meta
+        run: |
+          repo="${{ github.event.repository.name }}"
+          short_sha="${GITHUB_SHA::7}"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            base="${repo}-${GITHUB_REF_NAME}"
+            channel="versioned"
+          elif [[ "${GITHUB_REF}" == refs/heads/main ]]; then
+            base="${repo}-latest-${short_sha}"
+            channel="latest"
+          elif [[ "${GITHUB_REF}" == refs/heads/stable ]]; then
+            base="${repo}-stable-${short_sha}"
+            channel="stable"
+          else
+            base="${repo}-ci-${short_sha}"
+            channel="ci"
+          fi
+          echo "package_root=${base}" >> "$GITHUB_OUTPUT"
+          echo "package_name=${base}.zip" >> "$GITHUB_OUTPUT"
+          echo "channel=${channel}" >> "$GITHUB_OUTPUT"
+
       - name: Download macOS plugins
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-macos
-          path: dist/${{ github.event.repository.name }}/plugin-macos/
+          path: dist/${{ steps.meta.outputs.package_root }}/plugin-macos/
 
       - name: Download Windows plugins
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-windows
-          path: dist/${{ github.event.repository.name }}/plugin-windows/
+          path: dist/${{ steps.meta.outputs.package_root }}/plugin-windows/
 
       - name: Assemble package
         run: |
-          NAME="${{ github.event.repository.name }}"
-          cp LICENSE "dist/$NAME/" 2>/dev/null || true
-          cp README.md "dist/$NAME/" 2>/dev/null || true
+          root="dist/${{ steps.meta.outputs.package_root }}"
+          install -D LICENSE "$root/LICENSE"
+          install -D README.md "$root/README.md"
+
+      - name: Verify package contents
+        run: |
+          root="dist/${{ steps.meta.outputs.package_root }}"
+          test -f "$root/LICENSE"
+          test -f "$root/README.md"
+          test -d "$root/plugin-macos/NozzleSend.plugin"
+          test -d "$root/plugin-macos/NozzleReceive.plugin"
+          test -f "$root/plugin-windows/NozzleSend.dll"
+          test -f "$root/plugin-windows/NozzleReceive.dll"
 
       - name: Create archive
         run: |
           cd dist
-          zip -r "${{ github.event.repository.name }}.zip" "${{ github.event.repository.name }}/"
+          zip -r "${{ steps.meta.outputs.package_name }}" "${{ steps.meta.outputs.package_root }}/"
+
+      - name: Verify archive
+        run: |
+          archive="dist/${{ steps.meta.outputs.package_name }}"
+          unzip -l "$archive" | grep -F '${{ steps.meta.outputs.package_root }}/plugin-macos/NozzleSend.plugin/'
+          unzip -l "$archive" | grep -F '${{ steps.meta.outputs.package_root }}/plugin-windows/NozzleSend.dll'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-latest
-          path: dist/*.zip
+          name: ${{ steps.meta.outputs.package_root }}
+          path: dist/${{ steps.meta.outputs.package_name }}
+
+      - name: Check versioned release asset does not exist
+        if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset="${{ steps.meta.outputs.package_name }}"
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --json assets --jq '.assets[].name' > existing-assets.txt 2>/dev/null; then
+            if grep -Fx "$asset" existing-assets.txt; then
+              echo "versioned release asset already exists: $asset" >&2
+              exit 1
+            fi
+          else
+            echo "No existing release for ${GITHUB_REF_NAME}; upload may create it."
+          fi
 
       - name: Upload latest development snapshot
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -118,10 +171,10 @@ jobs:
           body: |
             Development snapshot from main.
             Commit: ${{ github.sha }}
-          files: dist/*.zip
+          files: dist/${{ steps.meta.outputs.package_name }}
 
       - name: Upload versioned release
         if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.zip
+          files: dist/${{ steps.meta.outputs.package_name }}
