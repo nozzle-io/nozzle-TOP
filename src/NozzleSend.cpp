@@ -133,7 +133,13 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
                                 copy_bytes);
                 }
 
-                nozzle_frame_unlock_writable_pixels(frame);
+                err = nozzle_frame_unlock_writable_pixels_checked(frame);
+                if (err != NOZZLE_OK) {
+                    // Commit rejects failed-unlock frames and releases the sender slot.
+                    (void)nozzle_sender_commit_frame(mySender, frame);
+                    nozzle_frame_release(frame);
+                    return;
+                }
             }
             NozzleErrorCode commit_err = nozzle_sender_commit_frame(mySender, frame);
 
