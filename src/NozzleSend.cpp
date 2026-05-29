@@ -2,6 +2,17 @@
 #include "pixel_format.h"
 
 #include <cstring>
+
+namespace {
+struct nozzle_frame_guard {
+    NozzleFrame *frame{};
+    explicit nozzle_frame_guard(NozzleFrame *f) : frame(f) {}
+    ~nozzle_frame_guard() { if (frame) nozzle_frame_release(frame); }
+    nozzle_frame_guard(const nozzle_frame_guard &) = delete;
+    nozzle_frame_guard &operator=(const nozzle_frame_guard &) = delete;
+};
+
+} // namespace
 #include <cassert>
 #include <cstdio>
 
@@ -118,6 +129,7 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 #endif
 
         if (err == NOZZLE_OK && frame) {
+            nozzle_frame_guard frame_guard{frame};
             NozzleMappedPixels pixels;
             err = nozzle_frame_lock_writable_pixels_with_origin(
                 frame, NOZZLE_ORIGIN_BOTTOM_LEFT, &pixels);
@@ -135,11 +147,12 @@ NozzleSendTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 
                 err = nozzle_frame_unlock_writable_pixels_checked(frame);
                 if (err != NOZZLE_OK) {
-                    // Commit rejects failed-unlock frames and releases the sender slot.
-                    (void)nozzle_sender_commit_frame(mySender, frame);
-                    nozzle_frame_release(frame);
+                    (void)nozzle_sender_discard_frame(mySender, frame);
                     return;
                 }
+            } else {
+                (void)nozzle_sender_discard_frame(mySender, frame);
+                return;
             }
             NozzleErrorCode commit_err = nozzle_sender_commit_frame(mySender, frame);
 
