@@ -83,6 +83,7 @@ jobs:
       - name: Compile receiver debug diagnostics
         run: |
           cmake -B build -DNOZZLE_TOP_DEBUG=ON
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build build --config Release --target NozzleReceive --verbose
 
   package:
