@@ -21,7 +21,7 @@ jobs:
           submodules: recursive
 
       - name: Configure and Build
-        run: cmake -B build && cmake --build build --config Release
+        run: cmake -B build -DNOZZLE_TOP_DEBUG=OFF && cmake --build build --config Release
 
       - name: Verify plugins
         run: |
@@ -45,6 +45,13 @@ jobs:
           name: ${{ github.event.repository.name }}-macos
           path: plugin/
 
+      # Both configurations write plugin/. Keep debug output out of the
+      # immutable normal artifact consumed by the package job.
+      - name: Compile receiver debug diagnostics
+        run: |
+          cmake -B build -DNOZZLE_TOP_DEBUG=ON
+          cmake --build build --config Release --target NozzleReceive --verbose
+
   build-windows:
     runs-on: windows-2022
     steps:
@@ -53,7 +60,7 @@ jobs:
           submodules: recursive
 
       - name: Configure and Build
-        run: cmake -B build && cmake --build build --config Release
+        run: cmake -B build -DNOZZLE_TOP_DEBUG=OFF && cmake --build build --config Release
 
       - name: Verify plugins
         shell: bash
@@ -71,6 +78,12 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-windows
           path: plugin/
+
+      # The package job downloads only the normal artifact uploaded above.
+      - name: Compile receiver debug diagnostics
+        run: |
+          cmake -B build -DNOZZLE_TOP_DEBUG=ON
+          cmake --build build --config Release --target NozzleReceive --verbose
 
   package:
     needs: [build-macos, build-windows]
