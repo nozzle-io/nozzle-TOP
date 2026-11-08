@@ -83,8 +83,8 @@ NozzleReceiveTOP::execute(TOP_Output *output, const OP_Inputs *inputs, void *)
 
     if (err != NOZZLE_OK || !frame) {
 #if NOZZLE_TOP_DEBUG
-        NozzleConnectedSenderInfo dbg_info{};
-        nozzle_receiver_get_connected_info(myReceiver, &dbg_info);
+        NozzleConnectedSenderSnapshot dbg_info{};
+        nozzle_receiver_get_connected_info_snapshot(myReceiver, &dbg_info);
         fprintf(stderr, "[nozzle] acquire err=%d w=%u h=%u backend=%d\n",
                 static_cast<int>(err), dbg_info.width, dbg_info.height, dbg_info.backend);
 #endif
